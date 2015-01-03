@@ -1,0 +1,17 @@
+{
+  "name": "Nucleus-Home",
+  "version": "0.0.1",
+  "description": "Nucleus local device interface server.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "upnp-controlpoint": "https://github.com/JoshConley/node-upnp-controlpoint/tarball/master",
+    "socket.io-client": "~1.2.1",
+    "express": "~4.10.6"
+  },
+  "devDependencies": {
+    "coffee-script": "~1.8.0"
+  }
+}
