@@ -14,7 +14,7 @@ SERVICE_TYPE_RemoteAccess = 'urn:Belkin:service:remoteaccess:1'
 ACTION_SetBinaryState = 'SetBinaryState'
 
 # Devices
-exports.wallSwitch = class wallSwitch
+exports.wallSwitch = class WallSwitch
   @type = 'urn:Belkin:device:controllee:1'
 
   constructor: (@device) ->
@@ -46,7 +46,7 @@ exports.wallSwitch = class wallSwitch
       else
         @emit 'BinaryState', if value then 1 else 0
 
-exports.lightSwitch = class lightSwitch
+exports.lightSwitch = class LightSwitch
   @type = 'urn:Belkin:device:lightswitch:1'
 
   constructor: (@device) ->
@@ -78,7 +78,7 @@ exports.lightSwitch = class lightSwitch
       else
         @emit 'BinaryState', if value then 1 else 0
 
-exports.motionSensor = class motionSensor
+exports.motionSensor = class MotionSensor
   @type = 'urn:Belkin:device:sensor:1'
 
   constructor: (@device) ->

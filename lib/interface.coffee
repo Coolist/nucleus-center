@@ -10,13 +10,15 @@ module.exports = (d, s) ->
   socket = s.socket
   store = s.store
 
+  store.requests = 0
+
   sync.on 'event', (data) ->
     socket.emit 'center:device:updateState', data
     
   sync.on 'device', (id) ->
     DEVICESsend devices, store
 
-    if not devices[id]?
+    if id? and not devices[id]?
       console.log 'Device removed: ', id
 
   socket.on 'auth:getAccess', (data) ->
@@ -51,9 +53,29 @@ module.exports = (d, s) ->
       AUTHsendRequest store
 
   socket.on 'device:setState', (data) ->
-    handleState data.id,
-      type: data.type
-      value: data.value
+
+    # Limit the number of actions to ~10 per second
+    store.requests++
+
+    if store.requests > 9
+      setTimeout () ->
+        setTimeout () ->
+          store.requests--
+        , 1000
+
+        do (handleState, data) ->
+          handleState data.id,
+            type: data.type
+            value: data.value
+      , 1000 * Math.floor(store.requests / 10)
+    else
+      setTimeout () ->
+        store.requests--
+      , 1000
+
+      handleState data.id,
+        type: data.type
+        value: data.value
 
   AUTHsendRequest = (store) ->
     socket.emit 'auth:getRequest',
@@ -68,7 +90,7 @@ module.exports = (d, s) ->
       for key, val of devices
         send.push
           id: key
-          local_name: val.control.device.friendlyName
+          local_name: val.local_name
           name: val.name
           states: val.states
 

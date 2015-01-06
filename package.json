@@ -9,7 +9,8 @@
   "dependencies": {
     "upnp-controlpoint": "https://github.com/JoshConley/node-upnp-controlpoint/tarball/master",
     "socket.io-client": "~1.2.1",
-    "express": "~4.10.6"
+    "express": "~4.10.6",
+    "node-rest-client": "~1.4.3"
   },
   "devDependencies": {
     "coffee-script": "~1.8.0"
