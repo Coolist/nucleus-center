@@ -33,6 +33,8 @@ handleState = (deviceId, data) ->
               data.value = Math.round(data.value / 100 * 255)
 
               device.setBrightness devices[deviceId].id, data.value
+            else if data.type is 'color_temperature'
+              device.setColorTemperature devices[deviceId].id, data.value
 
 # Handle device event
 handleEvent = (deviceId, evnt) ->
@@ -87,6 +89,24 @@ handleEvent = (deviceId, evnt) ->
                   id: deviceId
                   type: 'brightness'
                   value: Math.round(evnt.value / 255 * 100)
+
+            else if evnt.type is 'color'
+              if devices[deviceId].states.brightness isnt evnt.value
+                devices[deviceId].states.brightness = evnt.value
+
+                sync.emit 'event',
+                  id: deviceId
+                  type: 'color'
+                  value: evnt.value
+
+            else if evnt.type is 'color_temperature'
+              if devices[deviceId].states.brightness isnt evnt.value
+                devices[deviceId].states.brightness = evnt.value
+
+                sync.emit 'event',
+                  id: deviceId
+                  type: 'color_temperature'
+                  value: evnt.value
       
 
 # Handle each device
@@ -142,21 +162,33 @@ handleDevice = (device) ->
         when hue.bridge.type
           newDevice = new hue.bridge device
 
-          newDevice.getDevices (hueDevices) ->
-            for hueDeviceId, value of hueDevices
-              devices[device.uuid + ':' + hueDeviceId] =
-                name: 'hue:light:1'
-                local_name: value.name
-                id: hueDeviceId
-                control: newDevice
-                states:
-                  power: value.state.on
-                  color:
-                    hue: value.state.hue
-                    sat: value.state.sat
-                  brightness: Math.round(value.state.bri / 255 * 100)
+          getDevices = () ->
+            newDevice.getDevices (hueDevices) ->
+              for hueDeviceId, value of hueDevices
+                devices[device.uuid + ':' + hueDeviceId] =
+                  name: 'hue:light:1'
+                  local_name: value.name
+                  id: hueDeviceId
+                  control: newDevice
+                  states:
+                    power: value.state.on
+                    color:
+                      hue: value.state.hue
+                      sat: value.state.sat
+                    brightness: Math.round(value.state.bri / 255 * 100)
+                    color_temperature: value.state.ct
 
-            sync.emit 'device'
+              do (device, hueDeviceId) ->
+                setTimeout () ->
+                  for d, v of devices
+                    if d.indexOf(device.uuid) > -1
+                      getDevices()
+                      return true
+                , 60000
+
+              sync.emit 'device'
+
+          getDevices()
 
           newDevice.on 'event', (evnt) ->
             handleEvent device.uuid + ':' + evnt.id, evnt
@@ -165,8 +197,14 @@ handleDevice = (device) ->
 upnp = new upnpControl()
 upnp.on 'device', handleDevice
 upnp.on 'device-lost', (deviceId) ->
-  delete devices[deviceId]
-  sync.emit 'device', deviceId
+  deleted = false
+  for device, value of devices
+    if device.indexOf(deviceId) > -1
+      delete devices[device]
+      deleted = true
+
+  if deleted
+   sync.emit 'device', deviceId
 upnp.search()
 
 setInterval () ->

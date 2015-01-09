@@ -36,7 +36,7 @@ exports.bridge = class Bridge
           value: state
 
   setBrightness: (id, value) ->
-    brightness = value
+    brightness = Math.floor value
 
     brightness = 0 if brightness < 0
     brightness = 100 if brightness > 255
@@ -53,18 +53,45 @@ exports.bridge = class Bridge
           value: brightness
 
   setColor: (id, value) ->
-    state = if value then true else false
+    if not value.hue? or not value.sat?
+      return false
+
+    hue = Math.floor value.hue
+    hue = 0 if hue < 0
+    hue = 65535 if hue > 65535
+
+    sat = Math.floor value.sat
+    sat = 0 if sat < 0
+    sat = 255 if sat > 255
 
     rest.put baseUrl(@ip) + "/lights/#{id}/state",
       data:
-        on: state
+        hue: hue
+        sat: sat
     , (data) =>
 
       if data[0]? and data[0].success?
         @emit 'event',
           id: id
-          type: 'onOff'
-          value: state
+          type: 'color'
+          value:
+            hue: hue
+            sat: sat
+
+  setColorTemperature: (id, value) ->
+    ct = Math.floor value
+    ct = 153 if ct < 153
+    ct = 500 if ct > 500
+
+    rest.put baseUrl(@ip) + "/lights/#{id}/state",
+      data:
+        ct: ct
+    , (data) =>
+      if data[0]? and data[0].success?
+        @emit 'event',
+          id: id
+          type: 'color_temperature'
+          value: ct
 
 baseUrl = (ip) ->
   return 'http://' + ip + '/api/nucleus-home'
