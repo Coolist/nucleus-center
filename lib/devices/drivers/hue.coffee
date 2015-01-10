@@ -36,7 +36,7 @@ exports.bridge = class Bridge
           value: state
 
   setBrightness: (id, value) ->
-    brightness = Math.floor value
+    brightness = Math.round value
 
     brightness = 0 if brightness < 0
     brightness = 100 if brightness > 255
@@ -56,11 +56,11 @@ exports.bridge = class Bridge
     if not value.hue? or not value.sat?
       return false
 
-    hue = Math.floor value.hue
+    hue = Math.round value.hue
     hue = 0 if hue < 0
     hue = 65535 if hue > 65535
 
-    sat = Math.floor value.sat
+    sat = Math.round value.sat
     sat = 0 if sat < 0
     sat = 255 if sat > 255
 
@@ -79,7 +79,7 @@ exports.bridge = class Bridge
             sat: sat
 
   setColorTemperature: (id, value) ->
-    ct = Math.floor value
+    ct = Math.round value
     ct = 153 if ct < 153
     ct = 500 if ct > 500
 
